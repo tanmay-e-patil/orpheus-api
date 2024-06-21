@@ -12,7 +12,8 @@ import (
 import _ "github.com/lib/pq"
 
 type apiConfig struct {
-	DB *database.Queries
+	DB        *database.Queries
+	JWTSecret string
 }
 
 func main() {
@@ -30,6 +31,11 @@ func main() {
 		log.Fatal("$DATABASE_URL must be set")
 	}
 
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("$JWT_SECRET must be set")
+	}
+
 	db, err := sql.Open("postgres", databaseUrl)
 	if err != nil {
 		log.Fatal(err)
@@ -39,11 +45,14 @@ func main() {
 
 	apiCfg := apiConfig{
 		dbQueries,
+		jwtSecret,
 	}
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /v1/users", apiCfg.handlerSignUp)
 	mux.HandleFunc("POST /v1/users/login", apiCfg.handlerSignIn)
+	mux.HandleFunc("POST /api/refresh", apiCfg.handlerRefresh)
+	mux.HandleFunc("GET /api/users/me", apiCfg.handlerMe)
 
 	srv := &http.Server{
 		Addr:    ":" + port,
