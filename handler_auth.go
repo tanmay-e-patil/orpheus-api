@@ -68,7 +68,6 @@ func (cfg *apiConfig) handlerSignUp(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-
 	user, err := cfg.DB.CreateUser(r.Context(), database.CreateUserParams{
 		ID:           id,
 		CreatedAt:    time.Now().UTC(),
@@ -218,6 +217,7 @@ func (cfg *apiConfig) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 
 func (cfg *apiConfig) handlerMe(w http.ResponseWriter, r *http.Request) {
 	authorizationHeader := r.Header.Get("Authorization")
+	log.Printf("Authorization header: %v", authorizationHeader)
 	accessToken := authorizationHeader[7:]
 
 	customClaims := jwt.RegisteredClaims{}
@@ -237,6 +237,14 @@ func (cfg *apiConfig) handlerMe(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, err.Error())
 		return
+	}
+
+	tokenExpiry, err := customClaims.GetExpirationTime()
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, err.Error())
+	}
+	if tokenExpiry.Before(time.Now().UTC()) {
+		respondWithError(w, http.StatusUnauthorized, "Token is expired")
 	}
 
 	id, err := uuid.Parse(idString)
