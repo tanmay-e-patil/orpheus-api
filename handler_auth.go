@@ -8,6 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -215,49 +216,12 @@ func (cfg *apiConfig) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 	}{AccessToken: signedString})
 }
 
-func (cfg *apiConfig) handlerMe(w http.ResponseWriter, r *http.Request) {
-	authorizationHeader := r.Header.Get("Authorization")
-	log.Printf("Authorization header: %v", authorizationHeader)
-	accessToken := authorizationHeader[7:]
-
-	customClaims := jwt.RegisteredClaims{}
-	jwtParsed, err := jwt.ParseWithClaims(accessToken, &customClaims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(cfg.JWTSecret), nil
-	})
-	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, err.Error())
-		return
-	}
-	if jwtParsed == nil {
+func (cfg *apiConfig) handlerMe(w http.ResponseWriter, r *http.Request, user database.User) {
+	accessToken, found := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
+	if !found {
 		respondWithError(w, http.StatusUnauthorized, "Invalid token")
 		return
 	}
-	idString, err := customClaims.GetSubject()
 
-	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, err.Error())
-		return
-	}
-
-	tokenExpiry, err := customClaims.GetExpirationTime()
-	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, err.Error())
-	}
-	if tokenExpiry.Before(time.Now().UTC()) {
-		respondWithError(w, http.StatusUnauthorized, "Token is expired")
-	}
-
-	id, err := uuid.Parse(idString)
-	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, err.Error())
-		return
-	}
-
-	fetchedUser, err := cfg.DB.GetUserByID(r.Context(), id)
-	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, err.Error())
-		return
-	}
-
-	respondWithJSON(w, http.StatusOK, databaseUserToUser(fetchedUser, accessToken))
+	respondWithJSON(w, http.StatusOK, databaseUserToUser(user, accessToken))
 }

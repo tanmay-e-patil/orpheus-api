@@ -52,7 +52,7 @@ func main() {
 	mux.HandleFunc("POST /v1/users", apiCfg.handlerSignUp)
 	mux.HandleFunc("POST /v1/users/login", apiCfg.handlerSignIn)
 	mux.HandleFunc("POST /v1/refresh", apiCfg.handlerRefresh)
-	mux.HandleFunc("GET /v1/users/me", apiCfg.handlerMe)
+	mux.HandleFunc("GET /v1/users/me", apiCfg.middlewareAuth(apiCfg.handlerMe))
 
 	srv := &http.Server{
 		Addr:    ":" + port,
