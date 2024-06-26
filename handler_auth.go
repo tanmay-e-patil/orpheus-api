@@ -125,7 +125,7 @@ func (cfg *apiConfig) handlerSignIn(w http.ResponseWriter, r *http.Request) {
 	jwtClaimsAccess := jwt.RegisteredClaims{
 		Issuer:    "orpheus",
 		IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
-		ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(time.Duration(24) * time.Minute)),
+		ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(time.Duration(24) * time.Hour)),
 		Subject:   user.ID.String(),
 	}
 
