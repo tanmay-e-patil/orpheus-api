@@ -24,6 +24,7 @@ func (cfg *apiConfig) handlerSongsCreate(w http.ResponseWriter, r *http.Request,
 	type parameters struct {
 		Song Song `json:"song"`
 	}
+
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
 	err := decoder.Decode(&params)
@@ -33,6 +34,12 @@ func (cfg *apiConfig) handlerSongsCreate(w http.ResponseWriter, r *http.Request,
 	}
 	defer r.Body.Close()
 
+	id, err := uuid.NewUUID()
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	song, err := cfg.DB.GetSongById(r.Context(), params.Song.SpotifySongID)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
@@ -40,6 +47,16 @@ func (cfg *apiConfig) handlerSongsCreate(w http.ResponseWriter, r *http.Request,
 		}
 	} else {
 		log.Printf("Song already exists. No need to create")
+		songFollow, err := cfg.DB.CreateSongFollow(r.Context(), database.CreateSongFollowParams{
+			ID:     id,
+			SongID: params.Song.SpotifySongID,
+			UserID: user.ID,
+		})
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+
+		log.Printf("Created song follow: %+v", songFollow)
 		respondWithJSON(w, http.StatusCreated, databaseSongToSong(song))
 	}
 
@@ -57,12 +74,6 @@ func (cfg *apiConfig) handlerSongsCreate(w http.ResponseWriter, r *http.Request,
 
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't create song")
-	}
-
-	id, err := uuid.NewUUID()
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
 	}
 
 	songFollow, err := cfg.DB.CreateSongFollow(r.Context(), database.CreateSongFollowParams{
