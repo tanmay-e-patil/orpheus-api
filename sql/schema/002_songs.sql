@@ -7,6 +7,7 @@ CREATE TABLE songs (
     album_art TEXT NOT NULL,
     duration TEXT NOT NULL,
     video_id TEXT NOT NULL,
+    is_available BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL
 );

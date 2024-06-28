@@ -54,6 +54,7 @@ func main() {
 	mux.HandleFunc("POST /v1/refresh", apiCfg.handlerRefresh)
 	mux.HandleFunc("GET /v1/users/me", apiCfg.middlewareAuth(apiCfg.handlerMe))
 	mux.HandleFunc("POST /v1/songs", apiCfg.middlewareAuth(apiCfg.handlerSongsCreate))
+	mux.HandleFunc("GET /v1/songs", apiCfg.middlewareAuth(apiCfg.handlerSongsGet))
 
 	srv := &http.Server{
 		Addr:    ":" + port,

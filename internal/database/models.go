@@ -11,15 +11,16 @@ import (
 )
 
 type Song struct {
-	ID         string
-	Name       string
-	ArtistName string
-	AlbumName  string
-	AlbumArt   string
-	Duration   string
-	VideoID    string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	ID          string
+	Name        string
+	ArtistName  string
+	AlbumName   string
+	AlbumArt    string
+	Duration    string
+	VideoID     string
+	IsAvailable bool
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type SongFollow struct {

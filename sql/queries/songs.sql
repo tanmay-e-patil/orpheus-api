@@ -6,3 +6,10 @@ RETURNING *;
 -- name: GetSongById :one
 SELECT * FROM songs
 WHERE id = $1;
+
+-- name: GetSongsForUser :many
+SELECT * from songs
+WHERE id IN (
+    SELECT song_id FROM song_follows
+                   WHERE user_id = $1
+    );

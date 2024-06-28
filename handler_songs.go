@@ -90,3 +90,11 @@ func (cfg *apiConfig) handlerSongsCreate(w http.ResponseWriter, r *http.Request,
 
 	respondWithJSON(w, http.StatusCreated, databaseSongToSong(song))
 }
+
+func (cfg *apiConfig) handlerSongsGet(w http.ResponseWriter, r *http.Request, user database.User) {
+	songs, err := cfg.DB.GetSongsForUser(r.Context(), user.ID)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+	}
+	respondWithJSON(w, http.StatusOK, songs)
+}

@@ -8,12 +8,14 @@ package database
 import (
 	"context"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const createSong = `-- name: CreateSong :one
 INSERT INTO songs (id, name, artist_name, album_name, album_art, duration, video_id, created_at, updated_at)
 VALUES ($1, $2, $3, $4,  $5, $6, $7, $8, $9)
-RETURNING id, name, artist_name, album_name, album_art, duration, video_id, created_at, updated_at
+RETURNING id, name, artist_name, album_name, album_art, duration, video_id, is_available, created_at, updated_at
 `
 
 type CreateSongParams struct {
@@ -49,6 +51,7 @@ func (q *Queries) CreateSong(ctx context.Context, arg CreateSongParams) (Song, e
 		&i.AlbumArt,
 		&i.Duration,
 		&i.VideoID,
+		&i.IsAvailable,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -56,7 +59,7 @@ func (q *Queries) CreateSong(ctx context.Context, arg CreateSongParams) (Song, e
 }
 
 const getSongById = `-- name: GetSongById :one
-SELECT id, name, artist_name, album_name, album_art, duration, video_id, created_at, updated_at FROM songs
+SELECT id, name, artist_name, album_name, album_art, duration, video_id, is_available, created_at, updated_at FROM songs
 WHERE id = $1
 `
 
@@ -71,8 +74,51 @@ func (q *Queries) GetSongById(ctx context.Context, id string) (Song, error) {
 		&i.AlbumArt,
 		&i.Duration,
 		&i.VideoID,
+		&i.IsAvailable,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const getSongsForUser = `-- name: GetSongsForUser :many
+SELECT id, name, artist_name, album_name, album_art, duration, video_id, is_available, created_at, updated_at from songs
+WHERE id IN (
+    SELECT song_id FROM song_follows
+                   WHERE user_id = $1
+    )
+`
+
+func (q *Queries) GetSongsForUser(ctx context.Context, userID uuid.UUID) ([]Song, error) {
+	rows, err := q.db.QueryContext(ctx, getSongsForUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Song
+	for rows.Next() {
+		var i Song
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.ArtistName,
+			&i.AlbumName,
+			&i.AlbumArt,
+			&i.Duration,
+			&i.VideoID,
+			&i.IsAvailable,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
