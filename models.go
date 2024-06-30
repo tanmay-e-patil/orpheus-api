@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/google/uuid"
 	"github.com/tanmay-e-patil/orpheus-api/internal/database"
+	"log"
 	"time"
 )
 
@@ -40,6 +41,16 @@ func databaseSongToSong(song database.Song) Song {
 		CreatedAt:  song.CreatedAt,
 		UpdatedAt:  song.UpdatedAt,
 	}
+}
+
+func databaseSongsToSongs(songs []database.Song) []Song {
+	result := make([]Song, len(songs))
+
+	for idx, song := range songs {
+		log.Printf("Adding %v", song)
+		result[idx] = databaseSongToSong(song)
+	}
+	return result
 }
 
 func databaseUserToUser(user database.User, accessToken string) User {

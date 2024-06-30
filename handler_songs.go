@@ -96,5 +96,5 @@ func (cfg *apiConfig) handlerSongsGet(w http.ResponseWriter, r *http.Request, us
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 	}
-	respondWithJSON(w, http.StatusOK, songs)
+	respondWithJSON(w, http.StatusOK, databaseSongsToSongs(songs))
 }
