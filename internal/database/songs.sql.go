@@ -13,21 +13,22 @@ import (
 )
 
 const createSong = `-- name: CreateSong :one
-INSERT INTO songs (id, name, artist_name, album_name, album_art, duration, video_id, created_at, updated_at)
-VALUES ($1, $2, $3, $4,  $5, $6, $7, $8, $9)
-RETURNING id, name, artist_name, album_name, album_art, duration, video_id, is_available, created_at, updated_at
+INSERT INTO songs (id, name, artist_name, album_name, album_art, duration, video_id, release_date, created_at, updated_at)
+VALUES ($1, $2, $3, $4,  $5, $6, $7, $8, $9, $10)
+RETURNING id, name, artist_name, album_name, album_art, duration, video_id, is_available, release_date, created_at, updated_at
 `
 
 type CreateSongParams struct {
-	ID         string
-	Name       string
-	ArtistName string
-	AlbumName  string
-	AlbumArt   string
-	Duration   string
-	VideoID    string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	ID          string
+	Name        string
+	ArtistName  string
+	AlbumName   string
+	AlbumArt    string
+	Duration    string
+	VideoID     string
+	ReleaseDate time.Time
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 func (q *Queries) CreateSong(ctx context.Context, arg CreateSongParams) (Song, error) {
@@ -39,6 +40,7 @@ func (q *Queries) CreateSong(ctx context.Context, arg CreateSongParams) (Song, e
 		arg.AlbumArt,
 		arg.Duration,
 		arg.VideoID,
+		arg.ReleaseDate,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
@@ -52,6 +54,7 @@ func (q *Queries) CreateSong(ctx context.Context, arg CreateSongParams) (Song, e
 		&i.Duration,
 		&i.VideoID,
 		&i.IsAvailable,
+		&i.ReleaseDate,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -59,7 +62,7 @@ func (q *Queries) CreateSong(ctx context.Context, arg CreateSongParams) (Song, e
 }
 
 const getSongById = `-- name: GetSongById :one
-SELECT id, name, artist_name, album_name, album_art, duration, video_id, is_available, created_at, updated_at FROM songs
+SELECT id, name, artist_name, album_name, album_art, duration, video_id, is_available, release_date, created_at, updated_at FROM songs
 WHERE id = $1
 `
 
@@ -75,6 +78,7 @@ func (q *Queries) GetSongById(ctx context.Context, id string) (Song, error) {
 		&i.Duration,
 		&i.VideoID,
 		&i.IsAvailable,
+		&i.ReleaseDate,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -82,7 +86,7 @@ func (q *Queries) GetSongById(ctx context.Context, id string) (Song, error) {
 }
 
 const getSongsForUser = `-- name: GetSongsForUser :many
-SELECT id, name, artist_name, album_name, album_art, duration, video_id, is_available, created_at, updated_at from songs
+SELECT id, name, artist_name, album_name, album_art, duration, video_id, is_available, release_date, created_at, updated_at from songs
 WHERE id IN (
     SELECT song_id FROM song_follows
                    WHERE user_id = $1
@@ -107,6 +111,7 @@ func (q *Queries) GetSongsForUser(ctx context.Context, userID uuid.UUID) ([]Song
 			&i.Duration,
 			&i.VideoID,
 			&i.IsAvailable,
+			&i.ReleaseDate,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {

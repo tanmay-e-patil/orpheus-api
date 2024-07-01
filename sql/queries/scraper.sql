@@ -1,5 +1,6 @@
 -- name: GetNextSongsToFetch :many
 SELECT * FROM songs
+WHERE is_available = FALSE
 LIMIT $1;
 
 -- name: MarkSongAsAvailable :exec

@@ -19,6 +19,7 @@ type Song struct {
 	Duration    string
 	VideoID     string
 	IsAvailable bool
+	ReleaseDate time.Time
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
