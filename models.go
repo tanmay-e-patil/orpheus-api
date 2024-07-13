@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/google/uuid"
-	"github.com/tanmay-e-patil/orpheus-api/internal/database"
 	"log"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/tanmay-e-patil/orpheus-api/internal/database"
 )
 
 type User struct {

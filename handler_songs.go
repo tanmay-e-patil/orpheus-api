@@ -4,12 +4,16 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"github.com/google/uuid"
-	"github.com/tanmay-e-patil/orpheus-api/internal/database"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/tanmay-e-patil/orpheus-api/internal/database"
 )
+
+const assetsDir = "./public/library"
 
 func (cfg *apiConfig) handlerSongsCreate(w http.ResponseWriter, r *http.Request, user database.User) {
 	type Song struct {
@@ -105,4 +109,20 @@ func (cfg *apiConfig) handlerSongsGet(w http.ResponseWriter, r *http.Request, us
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 	}
 	respondWithJSON(w, http.StatusOK, databaseSongsToSongs(songs))
+}
+
+func (cfg *apiConfig) handlerSongsGetByID(w http.ResponseWriter, r *http.Request, user database.User) {
+	songID := r.PathValue("songID")
+	song, err := cfg.DB.GetSongById(r.Context(), songID)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+	}
+
+	songFilePath := fmt.Sprintf("%s/%s/%s/%s.m4a", assetsDir, song.ArtistName, song.AlbumName, song.Name)
+
+	// Set the content-type header for M4A files
+	w.Header().Set("Content-Type", "audio/mp4")
+
+	// Serve the M4A file
+	http.ServeFile(w, r, songFilePath)
 }

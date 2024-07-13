@@ -2,14 +2,16 @@ package main
 
 import (
 	"database/sql"
-	"github.com/joho/godotenv"
-	"github.com/tanmay-e-patil/orpheus-api/internal/database"
 	"log"
 	"net/http"
 	"os"
-)
+	"time"
 
-import _ "github.com/lib/pq"
+	"github.com/joho/godotenv"
+	"github.com/tanmay-e-patil/orpheus-api/internal/database"
+
+	_ "github.com/lib/pq"
+)
 
 type apiConfig struct {
 	DB        *database.Queries
@@ -55,11 +57,16 @@ func main() {
 	mux.HandleFunc("GET /v1/users/me", apiCfg.middlewareAuth(apiCfg.handlerMe))
 	mux.HandleFunc("POST /v1/songs", apiCfg.middlewareAuth(apiCfg.handlerSongsCreate))
 	mux.HandleFunc("GET /v1/songs", apiCfg.middlewareAuth(apiCfg.handlerSongsGet))
+	mux.HandleFunc("GET /v1/songs/{songID}", apiCfg.middlewareAuth(apiCfg.handlerSongsGetByID))
 
 	srv := &http.Server{
 		Addr:    ":" + port,
 		Handler: mux,
 	}
+	const collectionConcurrency = 10
+	const collectionInterval = time.Minute
+	go startScraping(dbQueries, collectionConcurrency, collectionInterval)
+
 	log.Printf("Starting server on port %s", srv.Addr)
 	log.Fatal(srv.ListenAndServe())
 }
