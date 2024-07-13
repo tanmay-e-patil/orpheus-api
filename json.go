@@ -14,7 +14,6 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 		w.WriteHeader(500)
 		return
 	}
-	log.Printf("Responding with %s", dat)
 	w.WriteHeader(code)
 	w.Write(dat)
 }
