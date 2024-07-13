@@ -16,7 +16,7 @@ import (
 const BASE_DIR = "./public/library"
 
 func startScraping(db *database.Queries, concurrency int, timeBetweenRequest time.Duration) {
-	log.Printf("Collecting feeds every %s on %v goroutines...", timeBetweenRequest, concurrency)
+	log.Printf("Collecting songs every %s on %v goroutines...", timeBetweenRequest, concurrency)
 	ticker := time.NewTicker(timeBetweenRequest)
 
 	for ; ; <-ticker.C {
@@ -25,7 +25,7 @@ func startScraping(db *database.Queries, concurrency int, timeBetweenRequest tim
 			log.Println("Couldn't get next songs to fetch", err)
 			continue
 		}
-		log.Printf("Found %v feeds to fetch!", len(songs))
+		log.Printf("Found %v songs to fetch!", len(songs))
 
 		wg := &sync.WaitGroup{}
 		for _, song := range songs {
@@ -171,5 +171,17 @@ func downloadSong(song database.Song) error {
 func scrapeSongs(db *database.Queries, wg *sync.WaitGroup, song database.Song) {
 	defer wg.Done()
 	log.Printf("Scraping song: %v", song)
+
+	err := downloadSong(song)
+	if err != nil {
+		log.Printf("Error downloading song: %v", err)
+		return
+	}
+
+	err = db.MarkSongAsAvailable(context.Background(), song.ID)
+	if err != nil {
+		log.Printf("Error updating song table: %v", err)
+		return
+	}
 
 }
