@@ -3,3 +3,6 @@
 
 goserver
 .idea
+.vscode/
+.DS_Store
+public/
