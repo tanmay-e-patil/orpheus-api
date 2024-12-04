@@ -111,7 +111,8 @@ func (cfg *apiConfig) handlerSongsGet(w http.ResponseWriter, r *http.Request, us
 	respondWithJSON(w, http.StatusOK, databaseSongsToSongs(songs))
 }
 
-func (cfg *apiConfig) handlerSongsGetByID(w http.ResponseWriter, r *http.Request, user database.User) {
+func (cfg *apiConfig) handlerSongsGetByID(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Started song retreival process")
 	songID := r.PathValue("songID")
 	song, err := cfg.DB.GetSongById(r.Context(), songID)
 	if err != nil {
@@ -124,5 +125,6 @@ func (cfg *apiConfig) handlerSongsGetByID(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Type", "audio/mp4")
 
 	// Serve the M4A file
+	log.Printf("Serving file %v", songFilePath)
 	http.ServeFile(w, r, songFilePath)
 }
